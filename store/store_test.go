@@ -34,3 +34,20 @@ func TestSet(t *testing.T) {
       t.Error("Expected " + expected + " Actual " + actual)
    }
 }
+
+func TestUnset(t *testing.T) {
+   s := store.Store{}
+   expected := ""
+   key := "Key"
+   s.Set(key, "value")
+   s.Unset(key)
+   actual, err := s.Get(key)
+
+   if err == nil {
+      t.Error("Expected an error")
+   }
+
+   if actual != expected {
+      t.Error("Expected " + expected + " Actual " + actual)
+   }
+}

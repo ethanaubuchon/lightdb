@@ -24,6 +24,10 @@ func (store *Store) Set(key string, value string) {
    store.data[key] = value
 }
 
+func (store *Store) Unset(key string) {
+   delete(store.data, key)
+}
+
 func (store *Store) Init() {
    store.data = make(map[string]string)
 }
