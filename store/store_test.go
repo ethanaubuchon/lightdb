@@ -6,7 +6,7 @@ import (
 )
 
 func TestGet(t *testing.T) {
-	s := store.Store{}
+	s := store.NewStore()
 	actual, err := s.Get("A")
 	expected := ""
 
@@ -20,7 +20,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestSet(t *testing.T) {
-	s := store.Store{}
+	s := store.NewStore()
 	expected := "value"
 	key := "Key"
 	s.Set(key, expected)
@@ -36,7 +36,7 @@ func TestSet(t *testing.T) {
 }
 
 func TestUnset(t *testing.T) {
-	s := store.Store{}
+	s := store.NewStore()
 	expected := ""
 	key := "Key"
 	s.Set(key, "value")
