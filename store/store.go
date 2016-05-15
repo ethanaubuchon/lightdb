@@ -6,21 +6,22 @@ import (
 )
 
 type Storer interface {
-	Get(key string) (value string, err error)
-	Set(key string, value string)
+	Get(key string) (value interface{}, err error)
+	Set(key string, value interface{})
 	Unset(key string)
+	Begin() *Tx
 }
 
 type Store struct {
 	sync.RWMutex
-	data map[string]string
+	data map[string]interface{}
 }
 
 func NewStore() *Store {
-	return &Store{data: make(map[string]string)}
+	return &Store{data: make(map[string]interface{})}
 }
 
-func (store *Store) Get(key string) (value string, err error) {
+func (store *Store) Get(key string) (value interface{}, err error) {
 	store.RLock()
 	value, ok := store.data[key]
 	store.RUnlock()
@@ -31,7 +32,7 @@ func (store *Store) Get(key string) (value string, err error) {
 	return "", errors.New("No value set")
 }
 
-func (store *Store) Set(key string, value string) {
+func (store *Store) Set(key string, value interface{}) {
 	store.Lock()
 	store.data[key] = value
 	store.Unlock()
@@ -41,4 +42,42 @@ func (store *Store) Unset(key string) {
 	store.Lock()
 	delete(store.data, key)
 	store.Unlock()
+}
+
+func (store *Store) Begin() *Tx {
+	return &Tx{
+		parent:    store,
+		overwrite: make(map[string]interface{}),
+	}
+}
+
+// Transaction
+
+type Tx struct {
+	parent    Storer
+	overwrite map[string]interface{}
+}
+
+func (tx *Tx) Get(key string) (value interface{}, err error) {
+	data, ok := tx.overwrite[key]
+	if ok {
+		return data, nil
+	}
+
+	return tx.parent.Get(key)
+}
+
+func (tx *Tx) Set(key string, value interface{}) {
+	tx.overwrite[key] = value
+}
+
+func (tx *Tx) Unset(key string) {
+	tx.overwrite[key] = nil
+}
+
+func (tx *Tx) Begin() *Tx {
+	return &Tx{
+		parent:    tx,
+		overwrite: make(map[string]interface{}),
+	}
 }
