@@ -81,3 +81,14 @@ func (tx *Tx) Begin() *Tx {
 		overwrite: make(map[string]interface{}),
 	}
 }
+
+func (tx *Tx) Rollback() {
+	tx = nil
+}
+
+func (tx *Tx) Commit() {
+	for key, value := range tx.overwrite {
+		tx.parent.Set(key, value)
+	}
+	tx = nil
+}

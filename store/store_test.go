@@ -170,3 +170,142 @@ func TestTransactionIsolation(t *testing.T) {
 	}
 
 }
+
+func TestRollback(t *testing.T) {
+	s := store.NewStore()
+	s.Set("test", "ABCD")
+	s.Set("other", 1234)
+	s.Set("thisOne", "Unicorn")
+	s.Set("WhatsThis", true)
+
+	tx := s.Begin()
+	tx.Set("foo", "bar")
+	tx.Set("bar", "foo")
+	tx.Set("test", false)
+	tx.Set("other", "ABC News at 6")
+	tx.Unset("other")
+	tx.Unset("bar")
+	tx.Unset("WhatsThis")
+
+	tx.Rollback()
+
+	actual, err := s.Get("test")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	var expected interface{} = "ABCD"
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("other")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = 1234
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("thisOne")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = "Unicorn"
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("WhatsThis")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = true
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+}
+
+func TestCommit(t *testing.T) {
+	s := store.NewStore()
+	s.Set("test", "ABCD")
+	s.Set("other", 1234)
+	s.Set("thisOne", "Unicorn")
+	s.Set("WhatsThis", true)
+
+	tx := s.Begin()
+	tx.Set("foo", "bar")
+	tx.Set("bar", "foo")
+	tx.Set("test", false)
+	tx.Set("other", "ABC News at 6")
+	tx.Unset("other")
+	tx.Unset("bar")
+	tx.Unset("WhatsThis")
+
+	tx.Commit()
+
+	actual, err := s.Get("test")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	var expected interface{} = false
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("other")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = nil
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("thisOne")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = "Unicorn"
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("WhatsThis")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = nil
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("foo")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = "bar"
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+	actual, err = s.Get("bar")
+	if err != nil {
+		t.Error("Unexpected Error")
+	}
+
+	expected = nil
+	if !reflect.DeepEqual(actual, expected) {
+		t.Error("Expected ", expected, " Actual ", actual)
+	}
+
+}
